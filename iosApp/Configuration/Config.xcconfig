@@ -1,0 +1,7 @@
+TEAM_ID=
+
+PRODUCT_NAME=PlazoTechnologiesTask
+PRODUCT_BUNDLE_IDENTIFIER=info.igorek.plazotechnologiestask.PlazoTechnologiesTask$(TEAM_ID)
+
+CURRENT_PROJECT_VERSION=1
+MARKETING_VERSION=1.0
