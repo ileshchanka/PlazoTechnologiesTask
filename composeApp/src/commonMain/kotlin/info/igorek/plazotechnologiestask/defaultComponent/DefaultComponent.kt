@@ -7,16 +7,33 @@ import com.arkivanov.decompose.router.slot.childSlot
 import com.arkivanov.decompose.router.slot.dismiss
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import info.igorek.plazotechnologiestask.repository.UserRepository
+import info.igorek.plazotechnologiestask.repository.UserRepositoryImpl
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 class DefaultComponent(
     context: ComponentContext,
+    private val userRepository: UserRepository = UserRepositoryImpl(CoroutineScope(Dispatchers.Default)),
 ) : ComponentContext by context {
 
-    data class State(val user: User = User.DEFAULT_USER)
+    data class State(
+        val user: User,
+        val isLoading: Boolean = false,
+    )
 
-    private val _state = MutableValue(State())
+    private val scope = CoroutineScope(Dispatchers.Default)
+    private val _state = MutableValue(State(user = User.DEFAULT_USER))
     val state: Value<State> = _state
+
+    init {
+        scope.launch {
+            val user = userRepository.getName()
+            _state.value = _state.value.copy(user = user)
+        }
+    }
 
     private val navigation = SlotNavigation<Config>()
 

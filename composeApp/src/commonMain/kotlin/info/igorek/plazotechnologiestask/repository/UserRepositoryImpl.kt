@@ -13,8 +13,8 @@ interface UserRepository {
 
     suspend fun updateUserName(newName: String): User
     suspend fun reloadUser(): User
+    suspend fun getName(): User
 }
-
 
 class UserRepositoryImpl(val scope: CoroutineScope) : UserRepository {
 
@@ -23,9 +23,8 @@ class UserRepositoryImpl(val scope: CoroutineScope) : UserRepository {
 
     override suspend fun updateUserName(newName: String): User {
         return scope.async(Dispatchers.Default) {
-            delay(300)
-            val currentUser = _user.value
-            val updatedUser = currentUser.copy(fullName = newName)
+            delay(1000)
+            val updatedUser = _user.value.copy(fullName = newName)
             _user.value = updatedUser
             updatedUser
         }.await()
@@ -33,10 +32,14 @@ class UserRepositoryImpl(val scope: CoroutineScope) : UserRepository {
 
     override suspend fun reloadUser(): User {
         return scope.async(Dispatchers.Default) {
-            delay(300)
-            val user = User.DEFAULT_USER
+            delay(1000)
+            val user = getName()
             _user.value = user
             user
         }.await()
+    }
+
+    override suspend fun getName(): User {
+        return _user.value
     }
 }
