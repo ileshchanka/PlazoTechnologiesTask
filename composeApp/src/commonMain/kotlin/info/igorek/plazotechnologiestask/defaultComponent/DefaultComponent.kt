@@ -1,38 +1,59 @@
 package info.igorek.plazotechnologiestask.defaultComponent
 
 import com.arkivanov.decompose.ComponentContext
-import info.igorek.plazotechnologiestask.repository.UserRepository
-import info.igorek.plazotechnologiestask.repository.UserRepositoryImpl
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
+import com.arkivanov.decompose.router.slot.SlotNavigation
+import com.arkivanov.decompose.router.slot.activate
+import com.arkivanov.decompose.router.slot.childSlot
+import com.arkivanov.decompose.router.slot.dismiss
+import com.arkivanov.decompose.value.MutableValue
+import com.arkivanov.decompose.value.Value
+import kotlinx.serialization.Serializable
 
-class DefaultComponent(context: ComponentContext) : ComponentContext by context {
+class DefaultComponent(
+    context: ComponentContext,
+) : ComponentContext by context {
 
-    data class State(
-        val user: User = User(),
+    data class State(val user: User = User.DEFAULT_USER)
+
+    private val _state = MutableValue(State())
+    val state: Value<State> = _state
+
+    private val navigation = SlotNavigation<Config>()
+
+    val slots = childSlot(
+        source = navigation,
+        serializer = Config.serializer(),
+        handleBackButton = true,
+        childFactory = ::createChildSlots,
     )
 
-    private val _state = MutableStateFlow(State())
-    val state = _state.asStateFlow()
+    fun createChildSlots(config: Config, context: ComponentContext): Child {
+        return when (config) {
+            is Config.UpdateName -> Child.UpdateName
+        }
+    }
 
-    private val scope = CoroutineScope(Dispatchers.Default)
-    private val repository: UserRepository = UserRepositoryImpl(scope)
+    fun showUpdateNameDialog() {
+        navigation.activate(Config.UpdateName)
+    }
 
+    @Serializable
+    sealed interface Config {
+        @Serializable
+        data object UpdateName : Config
+    }
 
-    fun onUpdateNameClick(newName: String) {
-        scope.launch {
-            val updatedUser = repository.updateUserName(newName)
+    sealed interface Child {
+        data object UpdateName : Child
+    }
+
+    fun onConfirmUpdateNameDialog(newName: String) {
+        if (newName.isNotBlank()) {
+            val updatedUser = _state.value.user.copy(fullName = newName)
             _state.value = _state.value.copy(user = updatedUser)
         }
+        dismissUpdateNameDialog()
     }
 
-    fun onReloadUserClick() {
-        scope.launch {
-            val reloadedUser = repository.reloadUser()
-            _state.value = State(user = reloadedUser)
-        }
-    }
+    fun dismissUpdateNameDialog() = navigation.dismiss()
 }

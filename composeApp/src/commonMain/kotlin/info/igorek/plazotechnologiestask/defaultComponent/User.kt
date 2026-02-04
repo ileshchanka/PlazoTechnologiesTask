@@ -1,8 +1,17 @@
 package info.igorek.plazotechnologiestask.defaultComponent
 
 data class User(
-    val id: Int = 1,
-    val fullName: String = "Ihar Leshchanka",
-    val email: String = "i@i.com",
-    val avatarUrl: String = "",
-)
+    val id: Int,
+    val fullName: String,
+    val email: String,
+    val avatarUrl: String,
+) {
+    companion object {
+        val DEFAULT_USER = User(
+            id = 1,
+            fullName = "Ihar Leshchanka",
+            email = "",
+            avatarUrl = "",
+        )
+    }
+}
