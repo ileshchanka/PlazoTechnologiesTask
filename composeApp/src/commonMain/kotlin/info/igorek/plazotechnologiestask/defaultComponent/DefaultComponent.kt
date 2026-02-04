@@ -7,6 +7,7 @@ import com.arkivanov.decompose.router.slot.childSlot
 import com.arkivanov.decompose.router.slot.dismiss
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.statekeeper.ExperimentalStateKeeperApi
 import info.igorek.plazotechnologiestask.repository.UserRepository
 import info.igorek.plazotechnologiestask.repository.UserRepositoryImpl
 import kotlinx.coroutines.CoroutineScope
@@ -19,6 +20,7 @@ class DefaultComponent(
     private val userRepository: UserRepository = UserRepositoryImpl(),
 ) : ComponentContext by context {
 
+    @Serializable
     data class State(
         val user: User,
         val isLoading: Boolean = false,
@@ -26,14 +28,24 @@ class DefaultComponent(
 
     private val scope = CoroutineScope(Dispatchers.Default)
 
-    private val _state = MutableValue(State(user = User.EMPTY))
+    @OptIn(ExperimentalStateKeeperApi::class)
+    private val _state = MutableValue(
+        stateKeeper.consume(key = "STATE", strategy = State.serializer())
+            ?: State(user = User.EMPTY)
+    )
     val state: Value<State> = _state
 
     init {
-        _state.value = _state.value.copy(isLoading = true)
-        scope.launch {
-            val user = userRepository.loadProfile()
-            _state.value = _state.value.copy(user = user, isLoading = false)
+        stateKeeper.register(key = "STATE", strategy = State.serializer()) {
+            _state.value
+        }
+
+        if (_state.value.user == User.EMPTY) {
+            _state.value = _state.value.copy(isLoading = true)
+            scope.launch {
+                val user = userRepository.loadProfile()
+                _state.value = _state.value.copy(user = user, isLoading = false)
+            }
         }
     }
 
@@ -42,7 +54,6 @@ class DefaultComponent(
     val slots = childSlot(
         source = navigation,
         serializer = Config.serializer(),
-        handleBackButton = true,
         childFactory = ::createChildSlots,
     )
 
