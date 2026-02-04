@@ -7,10 +7,16 @@ data class User(
     val avatarUrl: String,
 ) {
     companion object {
-        val DEFAULT_USER = User(
+        val EMPTY = User(
+            id = 0,
+            fullName = "",
+            email = "",
+            avatarUrl = "",
+        )
+        val DEFAULT = User(
             id = 1,
             fullName = "Ihar Leshchanka",
-            email = "",
+            email = "i@i.com",
             avatarUrl = "",
         )
     }

@@ -16,7 +16,7 @@ import kotlinx.serialization.Serializable
 
 class DefaultComponent(
     context: ComponentContext,
-    private val userRepository: UserRepository = UserRepositoryImpl(CoroutineScope(Dispatchers.Default)),
+    private val userRepository: UserRepository = UserRepositoryImpl(),
 ) : ComponentContext by context {
 
     data class State(
@@ -25,13 +25,15 @@ class DefaultComponent(
     )
 
     private val scope = CoroutineScope(Dispatchers.Default)
-    private val _state = MutableValue(State(user = User.DEFAULT_USER))
+
+    private val _state = MutableValue(State(user = User.EMPTY))
     val state: Value<State> = _state
 
     init {
+        _state.value = _state.value.copy(isLoading = true)
         scope.launch {
-            val user = userRepository.getName()
-            _state.value = _state.value.copy(user = user)
+            val user = userRepository.loadProfile()
+            _state.value = _state.value.copy(user = user, isLoading = false)
         }
     }
 
@@ -66,11 +68,22 @@ class DefaultComponent(
 
     fun onConfirmUpdateNameDialog(newName: String) {
         if (newName.isNotBlank()) {
-            val updatedUser = _state.value.user.copy(fullName = newName)
-            _state.value = _state.value.copy(user = updatedUser)
+            _state.value = _state.value.copy(isLoading = true)
+            scope.launch {
+                val updatedUser = userRepository.updateName(newName)
+                _state.value = _state.value.copy(user = updatedUser, isLoading = false)
+            }
         }
         dismissUpdateNameDialog()
     }
 
     fun dismissUpdateNameDialog() = navigation.dismiss()
+
+    fun onReloadUserClick() {
+        _state.value = _state.value.copy(isLoading = true)
+        scope.launch {
+            val reloadedUser = userRepository.reloadUser()
+            _state.value = _state.value.copy(user = reloadedUser, isLoading = false)
+        }
+    }
 }

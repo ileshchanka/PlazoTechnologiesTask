@@ -3,43 +3,37 @@ package info.igorek.plazotechnologiestask.repository
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import info.igorek.plazotechnologiestask.defaultComponent.User
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 
 interface UserRepository {
     val user: Value<User>
 
-    suspend fun updateUserName(newName: String): User
+    suspend fun updateName(name: String): User
     suspend fun reloadUser(): User
-    suspend fun getName(): User
+    suspend fun loadProfile(): User
 }
 
-class UserRepositoryImpl(val scope: CoroutineScope) : UserRepository {
+class UserRepositoryImpl : UserRepository {
 
-    private val _user = MutableValue(User.DEFAULT_USER)
+    private val _user = MutableValue(User.DEFAULT)
     override val user: Value<User> = _user
 
-    override suspend fun updateUserName(newName: String): User {
-        return scope.async(Dispatchers.Default) {
-            delay(1000)
-            val updatedUser = _user.value.copy(fullName = newName)
-            _user.value = updatedUser
-            updatedUser
-        }.await()
+    override suspend fun updateName(name: String): User {
+        delay(300)
+        val updatedUser = _user.value.copy(fullName = name)
+        _user.value = updatedUser
+        return updatedUser
     }
 
     override suspend fun reloadUser(): User {
-        return scope.async(Dispatchers.Default) {
-            delay(1000)
-            val user = getName()
-            _user.value = user
-            user
-        }.await()
+        val user = loadProfile()
+        _user.value = user
+        return user
     }
 
-    override suspend fun getName(): User {
-        return _user.value
+    override suspend fun loadProfile(): User {
+        delay(300)
+        val user = _user.value
+        return user
     }
 }
