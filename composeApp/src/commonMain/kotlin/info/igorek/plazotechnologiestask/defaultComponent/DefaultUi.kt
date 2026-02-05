@@ -42,7 +42,6 @@ fun DefaultUi(component: DefaultComponent) {
         ) {
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Avatar Placeholder
             Box(
                 modifier = Modifier
                     .size(120.dp)
@@ -64,7 +63,6 @@ fun DefaultUi(component: DefaultComponent) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // User Name
             Text(
                 text = state.user.fullName,
                 style = TextStyle(
@@ -76,7 +74,6 @@ fun DefaultUi(component: DefaultComponent) {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Email
             Text(
                 text = state.user.email,
                 style = TextStyle(
@@ -87,7 +84,6 @@ fun DefaultUi(component: DefaultComponent) {
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Update Name Button
             Button(
                 onClick = {
                     component.showUpdateNameDialog()
@@ -106,7 +102,6 @@ fun DefaultUi(component: DefaultComponent) {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Reload User Button
             Button(
                 onClick = {
                     component.onReloadUserClick()
